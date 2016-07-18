@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="editpaper">
+<head>
+    <meta charset="UTF-8">
+    <title>出试卷</title>
+    <script src="components/jquery/dist/jquery.min.js"></script>
+    <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="components/font-awesome/css/font-awesome.min.css">
+    <script src="components/moment/min/moment.min.js"></script>
+    <script src="components/angular/angular.min.js"></script>
+    <script src="js/sun/gem.js"></script>
+    <script src="js/sun/basics.js"></script>
+    <link rel="stylesheet" href="css/basics-g.css">
+    <style>
+        .questionnaire{
+            width: 800px;
+            border: 1px solid red;
+            margin: 0px auto;
+            padding-left: 30px;
+        }
+        .papername{
+            font-size: 20px;
+            margin: 20px 0px 10px;
+            font-weight: 600;
+        }
+        .topic{
+            margin: 20px 0px ;
+        }
+        .topic .title{
+            font-size: 16px;
+        }
+        .option{
+            font-size: 14px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body ng-controller="EditpaperCtrl">
+
+<div class="row questionnaire">
+    <!-- 试卷名 -->
+    <div class="row papername">
+        <a>试卷名{{paper.id}}：</a>
+        <input type="text" ng-model="paper.name">
+        <i class="fa fa-file" ng-click="addpaper()"></i>
+        <!--<i class="fa fa-edit" ng-click="editpaper()"></i>-->
+        <small style="float: right">
+            <a>出卷人：</a>
+            <input type="text" ng-model="paper.teacherid">
+        </small>
+    </div>
+
+    <div class="row">
+        发布日期:
+        <input type="text" ng-model="paper.createtime">
+        ，
+        共{{paper.topic.length}}个题目。
+    </div>
+
+
+
+    <div class="row edittopic" ng-repeat="topic in paper.topics track by $index">
+        <div class="row title">
+            {{$index+1}}. 问题标题：<textarea style="width: 100%;height: 50px" ng-model="topic.title"></textarea>
+        </div>
+        <div class="row">
+            问题答案：<input type="text" ng-model="topic.answer">
+        </div>
+
+        <div class="row">
+            问题分数：<input type="text" ng-model="topic.score">
+        </div>
+
+        <div class="row option" ng-repeat="opt in topic.options">
+            <div class="row">问题选项：<input type="text" ng-model="opt.option"></div>
+            <div class="row"><input type="text" ng-model="opt.content"></div>
+        </div>
+
+
+        <i class="fa fa-edit" ng-click="edittopic(topic)"></i>
+    </div>
+
+    <i class="fa fa-plus-square" ng-click="addtopic()"></i>
+
+    <button class="btn btn-primary" ng-click="addpaper()">提交</button>
+</div>
+
+<script>
+    var app = angular.module('editpaper',['sun']);
+
+    app.controller('EditpaperCtrl',function($scope,$http,global){
+        //paper数据类型
+        var teacherid= gem.urlVals.teacherid;
+        var id = gem.urlVals.id;
+        console.log(id,teacherid);
+
+
+        $scope.paper = {
+            id:id,
+            teacherid:teacherid
+        };
+
+
+        //新建paper
+        $scope.addpaper = function(){
+            var msg = {
+                paper:$scope.paper
+            };
+
+            $http.post(global.URL+'questionnaire/addpaper',msg)
+                .success(function(data){
+                    console.log(data);
+                    if(data.code == 1){
+                        $scope.paperdata = data.data.rows[0];
+                        console.log($scope.paperdata,'this is paperdata');
+
+                        //新建试卷赋值
+                        $scope.paper.id = $scope.paperdata.id;
+                        $scope.paper.name = $scope.paperdata.name;
+                        $scope.paper.teacherid = $scope.paperdata.teacherid;
+
+
+                        $scope.paperdata.createtime = moment($scope.paperdata.createtime).format('YYYY-MM-DD HH:mm:ss');
+                        $scope.paper.createtime = $scope.paperdata.createtime;
+
+                        $scope.paper.template = $scope.paperdata.template;
+                        console.log($scope.paper,'paper');
+
+                        $scope.paper.topics = JSON.parse($scope.paperdata.topics)?JSON.parse($scope.paperdata.topics):[];
+                        $scope.paper.topicnums = $scope.paper.topics.length;
+//                            $scope.paper.topics = $scope.paperdata.topics?$scope.paperdata.topics:[];
+                    }
+                }).error(function(data){
+                    console.log('err',data);
+                });
+        };
+
+        $scope.addpaper();
+
+        $scope.editpaper = function(){
+//            $scope.paper.topicnums = $scope.paper.topics.length;
+            $scope.paper.topicnums = $scope.paper.topics.length;
+            var msg = {
+                paper:$scope.paper
+            };
+
+            $http.post(global.URL+'questionnaire/editpaper',msg)
+                    .success(function(data){
+                        console.log(data,'this is editpaper');
+                    }).error(function(data){
+                        console.log(data,'err');
+                    });
+        };
+
+
+        $scope.addtopic = function(){
+
+            var msg = {
+                paper:$scope.paper
+            };
+            $http.post(global.URL+'questionnaire/addtopic',msg).success(function(data){
+                console.log(data,'this is addtopic data');
+                var data = data.data.rows[0];
+
+                if(!$scope.paper.topics){
+                    $scope.paper.topics = [];
+                }
+
+                console.log(data.options,'------',JSON.parse(data.options));
+                var msg = {
+                    id:data.id,
+                    title:data.title,
+                    answer:data.answer,
+                    score:data.score,
+                    options:JSON.parse(data.options)
+                };
+                $scope.paper.topics.push(msg);
+
+                $scope.editpaper();
+
+            }).error(function(data){
+                console.log('err',data);
+            });
+            console.log('addtopic!');
+        };
+
+        $scope.edittopic = function(topic){
+            var msg = {
+                topic:topic
+            };
+            $http.post(global.URL+'questionnaire/edittopic',msg).success(function(data){
+                if(data.code == 1){
+                    $scope.editpaper();
+                }else{
+                    console.log(data.text);
+                }
+            }).error(function(data){
+                console.log(data);
+            });
+        };
+
+//        $scope.paper = {
+//            name:"每日问卷调查",
+//            teacher:"喵小白",
+//            createtime:"time",
+//            topics:[
+//                {
+//                    id:1,
+//                    title:"回首近代以来中国波澜壮阔的历史，展望中华民族充满希望的未来，我们得出一个坚定的结论：全面建成小康社会，加快推进社会主义现代化，实现中华民族伟大复兴，必须坚定不移____。",
+//                    answer:"A",
+//                    score:"20",
+//                    options:[
+//                        {
+//                            option:"A",
+//                            content:"Acontent",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"B",
+//                            content:"Bcontent",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"C",
+//                            content:"Ccontent",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"D",
+//                            content:"Dcontent",
+//                            checked:false
+//                        }
+//                    ]
+//                },
+//                {
+//                    id:2,
+//                    title:"中国共产党第十八次全国代表大会，是在我国进入____小康社会决定性阶段召开的一次十分重要的大会。",
+//                    answer:"B",
+//                    score:"20",
+//                    options:[
+//                        {
+//                            option:"A",
+//                            content:"Acontent1",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"B",
+//                            content:"Bcontent1",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"C",
+//                            content:"Ccontent1",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"D",
+//                            content:"Dcontent1",
+//                            checked:false
+//                        }
+//                    ]
+//                },
+//                {
+//                    id:3,
+//                    title:"地球围绕太阳转",
+//                    answer:"C",
+//                    score:"20",
+//                    options:[
+//                        {
+//                            option:"A",
+//                            content:"Acontent2",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"B",
+//                            content:"Bcontent2",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"C",
+//                            content:"Ccontent2",
+//                            checked:false
+//                        },
+//                        {
+//                            option:"D",
+//                            content:"Dcontent2",
+//                            checked:false
+//                        }
+//                    ]
+//                }
+//            ]
+//        };
+
+
+
+    });
+</script>
+</body>
+</html>

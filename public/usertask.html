@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="components/jquery/dist/jquery.min.js"></script>
+    <script src="components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="components/toastr/toastr.min.css">
+    <!--<link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="components/font-awesome/css/font-awesome.min.css">
+    <script src="components/moment/min/moment.min.js"></script>
+    <script src="components/toastr/toastr.min.js"></script>
+    <script src="components/angular/angular.min.js"></script>
+    <script src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="js/sun/gem.js"></script>
+    <script src="js/sun/basics.js"></script>
+    <link rel="stylesheet" href="css/basics-g.css">
+    <style>
+        .questionnaire{
+            width: 800px;
+            border: 1px solid red;
+            margin: 0px auto;
+            padding-left: 30px;
+        }
+        .papername{
+            font-size: 20px;
+            margin: 20px 0px 10px;
+            font-weight: 600;
+        }
+        .topic{
+            margin: 20px 0px ;
+        }
+        .topic .title{
+            font-size: 16px;
+        }
+        .option{
+            font-size: 14px;
+            margin: 10px;
+        }
+    </style>
+
+</head>
+<body ng-app="app" ng-controller="examCtrl">
+
+
+<!--<div class="row questionnaire">-->
+<!--&lt;!&ndash; 试卷名 &ndash;&gt;-->
+<!--<div class="row papername">-->
+<!--每日问卷调查<small>出卷人：{{}}</small>-->
+<!--</div>-->
+
+<!--<div class="row">-->
+<!--发布日期{{pubtime}}，共12个题目。-->
+<!--</div>-->
+
+<!--<div class="row topic">-->
+<!--<div class="row title">-->
+
+
+<!--&lt;!&ndash;<label>Check me to check both: <input type="checkbox" ng-model="master"></label><br/>&ndash;&gt;-->
+<!--&lt;!&ndash;<label>Check me to check both: <input type="checkbox" ng-model="master1"></label><br/>&ndash;&gt;-->
+<!--&lt;!&ndash;<label>Check me to check both: <input type="checkbox" ng-model="master2"></label><br/>&ndash;&gt;-->
+<!--{{master}}-->
+<!--&lt;!&ndash;<input id="checkSlave" type="checkbox" ng-checked="master" aria-label="Slave input" ng-click="click()">&ndash;&gt;-->
+<!--1.[单选]小明的妈妈24岁，爸爸32岁，小明多少岁？-->
+<!--</div>-->
+<!--<div class="row option">-->
+<!--<input type="checkbox" ng-model="master">5岁-->
+<!--</div>-->
+<!--<div class="row option">-->
+<!--<input type="checkbox" ng-model="master">5岁-->
+<!--</div>-->
+<!--<div class="row option">-->
+<!--<input type="checkbox" ng-model="master">5岁-->
+<!--</div>-->
+<!--<div class="row option">-->
+<!--<input type="checkbox" ng-model="master">5岁-->
+<!--</div>-->
+<!--</div>-->
+
+<!--<div class="row topic">-->
+<!--<div class="row title">-->
+<!--1.[单选]小明的妈妈24岁，爸爸32岁，小明多少岁？-->
+<!--</div>-->
+<!--<div class="row name">-->
+<!--口5岁-->
+<!--</div>-->
+<!--<div class="row name">-->
+<!--口5岁-->
+<!--</div>-->
+<!--<div class="row name">-->
+<!--口5岁-->
+<!--</div>-->
+<!--<div class="row name">-->
+<!--口5岁-->
+<!--</div>-->
+<!--</div>-->
+
+
+<!--<button class="btn btn-primary">提交</button>-->
+<!--</div>-->
+
+<div class="row questionnaire">
+    <!-- 试卷名 -->
+    <div class="row papername">
+        {{paper.name}}<small style="float: right">出卷人：{{paper.teacher}}</small>
+    </div>
+
+    <div class="row">
+        发布日期{{paper.pubtime}}，共{{paper.topics.length}}个题目。
+    </div>
+
+    <div class="row topic" ng-repeat="topic in paper.topics">
+        <div class="row title">
+            {{$index+1}}.{{topic.title}}
+        </div>
+        <div class="row option" ng-repeat="opt in topic.options">
+
+            <input
+                    type="checkbox"
+                    name={{"topic"+$parent.$index+$index}}
+                    value="{{opt}}"
+                    ng-checked="ischecked(opt,topic.id)"
+                    ng-click="toggleSelection(opt,topic.id)"
+                    > {{opt}}
+
+
+        </div>
+    </div>
+
+    <button class="btn btn-primary">提交</button>
+</div>
+
+</body>
+
+<script>
+    var app = angular.module('app',['sun']);
+    app.controller('examCtrl',function($scope,$http,global){
+        $scope.paper = {
+            name:"每日问卷调查",
+            teacher:"喵小白",
+            pubtime:"time",
+            topics:[
+                {
+                    id:1,
+                    title:"回首近代以来中国波澜壮阔的历史，展望中华民族充满希望的未来，我们得出一个坚定的结论：全面建成小康社会，加快推进社会主义现代化，实现中华民族伟大复兴，必须坚定不移____。",
+                    answer:"A",
+                    score:"20",
+                    options:[
+                        {
+                            option:"A",
+                            content:"Acontent",
+                            checked:false
+                        },
+                        {
+                            option:"B",
+                            content:"Bcontent",
+                            checked:false
+                        },
+                        {
+                            option:"C",
+                            content:"Ccontent",
+                            checked:false
+                        },
+                        {
+                            option:"D",
+                            content:"Dcontent",
+                            checked:false
+                        }
+                    ]
+                },
+                {
+                    id:2,
+                    title:"中国共产党第十八次全国代表大会，是在我国进入____小康社会决定性阶段召开的一次十分重要的大会。",
+                    answer:"A",
+                    score:"20",
+                    options:[
+                        {
+                            option:"A",
+                            content:"Acontent1",
+                            checked:false
+                        },
+                        {
+                            option:"B",
+                            content:"Bcontent1",
+                            checked:false
+                        },
+                        {
+                            option:"C",
+                            content:"Ccontent1",
+                            checked:false
+                        },
+                        {
+                            option:"D",
+                            content:"Dcontent1",
+                            checked:false
+                        }
+                    ]
+                },
+                {
+                    id:3,
+                    title:"地球围绕太阳转",
+                    answer:"A",
+                    score:"20",
+                    options:[
+                        {
+                            option:"A",
+                            content:"Acontent2",
+                            checked:false
+                        },
+                        {
+                            option:"B",
+                            content:"Bcontent2",
+                            checked:false
+                        },
+                        {
+                            option:"C",
+                            content:"Ccontent2",
+                            checked:false
+                        },
+                        {
+                            option:"D",
+                            content:"Dcontent2",
+                            checked:false
+                        }
+                    ]
+                }
+            ]
+        };
+
+
+        var usertaskid = gem.urlVals.usertaskid;
+
+        $scope.listusertask = function(){
+            var msg = {
+                usertask:{
+                    usertaskid:usertaskid
+                }
+            };
+
+            $http.post(global.URL+'questionnaire/listusertask',msg).success(function(data){
+                if(data.code == 1){
+                    console.log('yes',data);
+                    var paper = data.data;
+                    $scope.paper.name = paper.name;
+                    $scope.paper.pubtime = paper.pushtime;
+                    $scope.paper.teacherid = paper.teacherid;
+                    $scope.paper.teacher = paper.teacher;
+                    $scope.paper.topics = paper.topics;
+                    var tmparr = [];
+                    for(var i=0;i<paper.topics.length;i++){
+                        var tmpobj = {};
+                        tmpobj.id = paper.topics[i].id;
+                        tmpobj.options = [];
+                        tmparr.push(tmpobj);
+                    }
+                    if(!paper.commit){
+                        $scope.selection = tmparr;
+                        console.log(tmparr);
+                    }else{
+                        $scope.selection = paper.commit;
+                    }
+
+                }else{
+                    console.log(data);
+                }
+            }).error(function(data){
+                console.log(data);
+            });
+        }
+        $scope.listusertask();
+
+
+        // selected fruits
+        $scope.selection = [];
+//        $scope.selection = [
+//            {
+//                id:1,
+//                options:[
+//                    {
+//                        option:"A",
+//                        content:"Acontent1",
+//                        checked:false
+//                    }
+//                ]
+//            },
+//            {
+//                id:3,
+//                options:[
+//                    {
+//                        option:"B",
+//                        content:"Acontent2",
+//                        checked:false
+//                    }
+//                ]
+//            },
+//            {
+//                id:2,
+//                options:[
+//                    {
+//                        option:"B",
+//                        content:"Acontent2",
+//                        checked:false
+//                    }
+//                ]
+//            }
+//        ];
+
+        $scope.ischecked = function(opt,id){
+
+            for(var i=0;i<$scope.selection.length;i++){
+                if($scope.selection[i].id == id){
+                    for(var j=0;j<$scope.selection[i].options.length;j++){
+                        if($scope.selection[i].options[j].option == opt.option){
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+
+
+        var ischecked = function(opt,id){
+            var tmpi = -1;
+            var tmpj = -1;
+            for(var i=0;i<$scope.selection.length;i++){
+                if($scope.selection[i].id == id){
+                    tmpi = i;
+                    for(var j=0;j<$scope.selection[i].options.length;j++){
+                        if($scope.selection[i].options[j].option == opt.option){
+                            return {
+                                bool:true,
+                                i:i,
+                                j:j
+                            };
+                        }
+                    }
+                }
+            }
+            return {
+                bool:false,
+                i:tmpi,
+                j:tmpj
+            };
+        }
+
+        // toggle selection for a given fruit by name
+        $scope.toggleSelection = function toggleSelection(opt,id) {
+            var ifchecked = ischecked(opt,id);
+            var i = ifchecked.i;
+            var j = ifchecked.j;
+
+            $scope.selection[i].options = [];
+
+            if(ifchecked.bool){
+                $scope.selection[i].options = [];
+//                $scope.selection[i].options.push(opt);
+            }else{
+                if(ifchecked.i == -1){
+                    $scope.selection.push({
+                        id:id,
+                        options:[
+                            opt
+                        ]
+                    });
+                }else{
+                    $scope.selection[i].options.push(opt);
+                }
+            }
+            console.log($scope.selection);
+        };
+
+        $scope.submitQ = function(){
+            var msg = {};
+            $http.post('localhost:3000/questionnaire/generatepaper',msg)
+                    .success(function(data){
+                        console.log(data);
+                    })
+                    .error(function(data){
+                        console.log(data);
+                    });
+        };
+
+
+    });
+</script>
+</html>
